@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by navnoire on 19/10/17 in MyRecipes project
@@ -21,12 +22,14 @@ import java.util.Iterator;
 
 public class RecipeFetcher {
     private static final String TAG = "RecipeFetcher";
-    public static final String INGR_NAME = "ingrName";
-    public static final String INGR_AMOUNT = "ingrAmount";
+    public static final String MAIN_URL = "https://gotovim-doma.ru";
+
     private Recipe mRecipe;
+    private List<Recipe> mRecipes;
 
     public RecipeFetcher() {
         mRecipe = new Recipe();
+        mRecipes = new ArrayList<>();
     }
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
@@ -53,29 +56,27 @@ public class RecipeFetcher {
 
     }
 
-    public Recipe fetchRecipe(String url) {
+    public Recipe fetchSingleRecipe(String url) {
         mRecipe.setUrl(url);
 
         try {
             Document document = Jsoup.connect(url).userAgent("Mozilla").get();
-            Log.d(TAG, "fetchRecipe: got Document from Url: " + document.location());
+            Log.d(TAG, "fetchSingleRecipe: got Document from Url: " + document.location());
 
             String title = document.title();
             if (title.contains(" - Рецепт с фото на Готовим дома")) {
-                Log.i(TAG, "fetchRecipe: find unappropriated string");
+                Log.i(TAG, "fetchSingleRecipe: find unappropriated string");
                 title = title.replace(" - Рецепт с фото на Готовим дома", "");
             }
             mRecipe.setTitle(title);
 
-//            ArrayList<Element> elementList = document.body().getElementsByClass("recept-shadow");
             Element recipeElement = document.select("div.recept-shadow").first();
             if (recipeElement != null) {
-//                recipeElement = elementList.get(0);
-                Log.d(TAG, "fetchRecipe: received element " + recipeElement.className());
+                Log.d(TAG, "fetchSingleRecipe: received element " + recipeElement.className());
                 setTextFields(recipeElement);
                 getImageUrl(document.body());
             } else {
-                Log.d(TAG, "fetchRecipe: failed to find recipe element");
+                Log.d(TAG, "fetchSingleRecipe: failed to find recipe element");
             }
 
             Element recipeInstructions = document.select("div.recept-shadow").get(1);
@@ -91,7 +92,7 @@ public class RecipeFetcher {
                         imageUrl = step.select("img.stepimg").get(0).absUrl("src");
                     }
                     String stepText = step.select("p").text();
-                    Log.d(TAG, "fetchRecipe: fetched step " + imageUrl + " " + stepText);
+                    Log.d(TAG, "fetchSingleRecipe: fetched step " + imageUrl + " " + stepText);
                     ArrayList<String> oneStep = new ArrayList<>();
                     oneStep.add(stepText);
                     oneStep.add(imageUrl);
@@ -109,6 +110,43 @@ public class RecipeFetcher {
         }
 
         return mRecipe;
+    }
+
+    public List<Recipe> fetchList(String url) {
+        try {
+            Document document = Jsoup.connect(url).userAgent("Mozilla").get();
+            if (url.equals(MAIN_URL)) {
+                Log.d(TAG, "fetchList: fetched main menu");
+                mRecipes = getMenu(document, "table.menu-main", "th");
+            } else {
+                if (document.select("ul.razdel-menu") != null) {
+                    Log.d(TAG, "fetchList: fetched razdel menu");
+                    mRecipes = getMenu(document, "ul.razdel-menu", "li");
+                }
+            }
+
+        } catch (IOException ioe) {
+            Log.e(TAG, "fetchList: connection failed JSOUP", ioe);
+        }
+        return mRecipes;
+    }
+
+    private List<Recipe> getMenu(Document root, String element, String child) {
+        List<Recipe> menuItems = new ArrayList<>();
+
+        Elements items = root.select(element).first().select(child);
+        Iterator iterator = items.listIterator();
+        while (iterator.hasNext()) {
+            Element item = (Element) iterator.next();
+            String name = item.text();
+            String itemUrl = item.select("a").first().absUrl("href");
+            Recipe newRecipe = new Recipe();
+            newRecipe.setTitle(name);
+            newRecipe.setUrl(itemUrl);
+            menuItems.add(newRecipe);
+            Log.d(TAG, "fetchList: fetched MenuItem " + name + " " + itemUrl);
+        }
+        return menuItems;
     }
 
     private void setTextFields(Element root) {
@@ -134,7 +172,7 @@ public class RecipeFetcher {
     }
 
     private void getImageUrl(Element root) {
-        ArrayList<String> imagesUrls = new ArrayList<>();
+//        ArrayList<String> imagesUrls = new ArrayList<>();
 
         String url = root.getElementsByClass("photo result-photo").get(0).absUrl("src");
         Log.d(TAG, "getImageUrl: main image URL: " + url);

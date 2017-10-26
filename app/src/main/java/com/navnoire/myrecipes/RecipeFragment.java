@@ -102,7 +102,7 @@ public class RecipeFragment extends Fragment {
         @Override
         protected Recipe doInBackground(Void... voids) {
             RecipeFetcher rf = new RecipeFetcher();
-            Recipe recipe = rf.fetchRecipe(mUrl);
+            Recipe recipe = rf.fetchSingleRecipe(mUrl);
 
             try {
                 byte[] imageBytes = rf.getUrlBytes(recipe.getMainImageUrl());
