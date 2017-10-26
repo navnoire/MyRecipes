@@ -26,10 +26,12 @@ public class RecipeFetcher {
 
     private Recipe mRecipe;
     private List<Recipe> mRecipes;
+    private List<MenuItem> mMenuItems;
 
     public RecipeFetcher() {
         mRecipe = new Recipe();
         mRecipes = new ArrayList<>();
+        mMenuItems = new ArrayList<>();
     }
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
@@ -112,38 +114,40 @@ public class RecipeFetcher {
         return mRecipe;
     }
 
-    public List<Recipe> fetchList(String url) {
+    public List<MenuItem> fetchList(String url) {
         try {
             Document document = Jsoup.connect(url).userAgent("Mozilla").get();
             if (url.equals(MAIN_URL)) {
                 Log.d(TAG, "fetchList: fetched main menu");
-                mRecipes = getMenu(document, "table.menu-main", "th");
+                mMenuItems = getMenu(document, "table.menu-main", "th");
             } else {
-                if (document.select("ul.razdel-menu") != null) {
-                    Log.d(TAG, "fetchList: fetched razdel menu");
-                    mRecipes = getMenu(document, "ul.razdel-menu", "li");
+
+                if (document.select("ul.razdel-menu").size() != 0) {
+                    Log.d(TAG, "fetchList: fetched razdel menu ");
+                    mMenuItems = getMenu(document, "ul.razdel-menu", "li");
+                } else {
+                    Log.d(TAG, "fetchList: no way forward ");
                 }
             }
 
         } catch (IOException ioe) {
             Log.e(TAG, "fetchList: connection failed JSOUP", ioe);
         }
-        return mRecipes;
+        return mMenuItems;
     }
 
-    private List<Recipe> getMenu(Document root, String element, String child) {
-        List<Recipe> menuItems = new ArrayList<>();
+    private List<MenuItem> getMenu(Document root, String element, String child) {
+        List<MenuItem> menuItems = new ArrayList<>();
 
         Elements items = root.select(element).first().select(child);
         Iterator iterator = items.listIterator();
         while (iterator.hasNext()) {
             Element item = (Element) iterator.next();
             String name = item.text();
-            String itemUrl = item.select("a").first().absUrl("href");
-            Recipe newRecipe = new Recipe();
-            newRecipe.setTitle(name);
-            newRecipe.setUrl(itemUrl);
-            menuItems.add(newRecipe);
+            String itemUrl = item.select("a[href]").first().absUrl("href");
+                    //.first().absUrl("href");
+            MenuItem newItem = new MenuItem(name, itemUrl);
+            menuItems.add(newItem);
             Log.d(TAG, "fetchList: fetched MenuItem " + name + " " + itemUrl);
         }
         return menuItems;

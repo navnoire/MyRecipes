@@ -1,18 +1,17 @@
 package com.navnoire.myrecipes;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -28,12 +27,12 @@ public class RecipeListFragment extends Fragment{
 
     private String mUrl;
     private RecyclerView mRecyclerView;
-    List<Recipe> mRecipes = new ArrayList<>();
+    List<MenuItem> mMenuItems = new ArrayList<>();
     private MenuAdapter mAdapter;
     private Callbacks mCallbacks;
 
     public interface Callbacks {
-        void onItemClicked(Recipe recipe);
+        void onItemClicked(MenuItem menuItem);
     }
 
     public static RecipeListFragment newInstance(String url) {
@@ -70,59 +69,66 @@ public class RecipeListFragment extends Fragment{
         mRecyclerView = v.findViewById(R.id.recipe_list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL );
+        mRecyclerView.addItemDecoration(dividerItemDecoration);
+
         setupAdapter();
         return v;
     }
 
     private void setupAdapter() {
-        mAdapter = new MenuAdapter(mRecipes);
+        mAdapter = new MenuAdapter(mMenuItems);
         mRecyclerView.setAdapter(mAdapter);
     }
 
-    private class MenuItemHolder extends RecyclerView.ViewHolder {
+    private class MenuItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView mNameTextView;
-        ImageView mImageView;
 
         public MenuItemHolder(View itemView) {
             super(itemView);
 
-            mNameTextView = itemView.findViewById(R.id.instruction_step_text);
-            mImageView = itemView.findViewById(R.id.instruction_step_image);
+            mNameTextView = itemView.findViewById(android.R.id.text1);
+            itemView.setOnClickListener(this);
         }
 
-        public void bindItem(String text, @Nullable Drawable image) {
+        @Override
+        public void onClick(View view) {
+            MenuItem currentItem = mMenuItems.get(getAdapterPosition());
+            mCallbacks.onItemClicked(currentItem);
+        }
+
+        public void bindItem(String text) {
             mNameTextView.setText(text);
-            mImageView.setImageDrawable(image);
         }
     }
 
     private class MenuAdapter extends RecyclerView.Adapter<MenuItemHolder> {
-        List<Recipe> mRecipeList;
+        List<MenuItem> mMenuItemList;
 
-        public MenuAdapter(List<Recipe> recipeList) {
-            mRecipeList = recipeList;
+        public MenuAdapter(List<MenuItem> menuItemList) {
+            mMenuItemList = menuItemList;
         }
 
         @Override
         public MenuItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            View v = inflater.inflate(R.layout.instructions_list_item, parent, false);
+            View v = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
             return new MenuItemHolder(v);
         }
 
         @Override
         public void onBindViewHolder(MenuItemHolder holder, int position) {
-            Recipe currentItem = mRecipeList.get(position);
-            holder.bindItem(currentItem.getTitle(), currentItem.getMainImage());
+            MenuItem currentItem = mMenuItemList.get(position);
+            holder.bindItem(currentItem.getTitle());
         }
 
         @Override
         public int getItemCount() {
-            return mRecipeList.size();
+            return mMenuItemList.size();
         }
     }
 
-    private class FetchListTask extends AsyncTask<Void, Void, List<Recipe>> {
+    private class FetchListTask extends AsyncTask<Void, Void, List<MenuItem>> {
         private String menuUrl;
 
         public FetchListTask(String url) {
@@ -131,15 +137,15 @@ public class RecipeListFragment extends Fragment{
         }
 
         @Override
-        protected List<Recipe> doInBackground(Void... voids) {
+        protected List<MenuItem> doInBackground(Void... voids) {
             Log.d(TAG, "doInBackground: in");
             return new RecipeFetcher().fetchList(menuUrl);
         }
 
         @Override
-        protected void onPostExecute(List<Recipe> menuItems) {
+        protected void onPostExecute(List<MenuItem> menuItems) {
             super.onPostExecute(menuItems);
-            mRecipes = menuItems;
+            mMenuItems = menuItems;
             setupAdapter();
 
 

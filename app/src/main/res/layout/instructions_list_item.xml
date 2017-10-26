@@ -15,8 +15,8 @@
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:layout_weight="2"
-        android:textAlignment="textEnd"
-        tools:text="dgfghgjjgj"/>
+        android:textAlignment="textStart"
+        />
 
     <ImageView
         android:id="@+id/instruction_step_image"
