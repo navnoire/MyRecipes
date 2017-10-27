@@ -8,10 +8,10 @@ import android.support.v4.app.FragmentManager;
  */
 
 public class RecipeListActivity extends SingleFragmentActivity
-implements RecipeListFragment.Callbacks {
+implements RecipeListFragment.Callbacks, MenuListFragment.Callbacks {
     @Override
     protected Fragment createFragment() {
-        return RecipeListFragment.newInstance("https://gotovim-doma.ru");
+        return MenuListFragment.newInstance("https://gotovim-doma.ru");
     }
 
     @Override
@@ -19,7 +19,7 @@ implements RecipeListFragment.Callbacks {
         if(menuItem.getMainImage() == null) {
             FragmentManager fm = getSupportFragmentManager();
             fm.beginTransaction().addToBackStack(menuItem.getTitle())
-                    .replace(R.id.fragment_container, RecipeListFragment.newInstance(menuItem.getUrl()))
+                    .replace(R.id.fragment_container, MenuListFragment.newInstance(menuItem.getUrl()))
                     .commit();
         }
     }

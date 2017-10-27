@@ -145,7 +145,6 @@ public class RecipeFetcher {
             Element item = (Element) iterator.next();
             String name = item.text();
             String itemUrl = item.select("a[href]").first().absUrl("href");
-                    //.first().absUrl("href");
             MenuItem newItem = new MenuItem(name, itemUrl);
             menuItems.add(newItem);
             Log.d(TAG, "fetchList: fetched MenuItem " + name + " " + itemUrl);

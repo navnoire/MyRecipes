@@ -49,6 +49,10 @@ public class RecipeListFragment extends Fragment{
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        if (!( context instanceof Callbacks)) {
+            throw new ClassCastException("Activity must implement callbacks");
+        }
+
         mCallbacks = (Callbacks) context;
     }
 

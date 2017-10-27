@@ -105,7 +105,7 @@ public class RecipeInstructionsFragment extends Fragment {
         @Override
         public InstructionsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            View v = inflater.inflate(R.layout.instructions_list_item, parent, false);
+            View v = inflater.inflate(R.layout.recipe_list_item, parent, false);
             return new InstructionsViewHolder(v);
         }
 
@@ -130,7 +130,7 @@ public class RecipeInstructionsFragment extends Fragment {
 
         @Override
         public int getItemViewType(int position) {
-            return R.layout.instructions_list_item;
+            return R.layout.recipe_list_item;
         }
     }
 

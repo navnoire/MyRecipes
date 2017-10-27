@@ -4,7 +4,22 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:orientation="horizontal">
+              android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/instruction_step_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/recipe_main_image"
+        android:scaleType="centerCrop"
+        />
 
     <TextView
         android:id="@+id/instruction_step_text"
@@ -16,19 +31,6 @@
         android:layout_marginTop="8dp"
         android:layout_weight="2"
         android:textAlignment="textStart"
-        />
-
-    <ImageView
-        android:id="@+id/instruction_step_image"
-        android:layout_width="0dp"
-        android:layout_height="150dp"
-        android:layout_gravity="top"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_weight="1"
-        android:scaleType="centerCrop"
         />
 
 

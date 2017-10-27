@@ -6,11 +6,12 @@
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/recipe_list_title"
+        style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="?android:listSeparatorTextViewStyle"
-        android:text="Приготовление"
-        android:layout_margin="8dp"/>
+        android:layout_margin="8dp"
+        android:text="Приготовление"/>
 
     <android.support.v7.widget.RecyclerView
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -18,6 +19,6 @@
         android:id="@+id/recipe_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/instructions_list_item"/>
+        tools:listitem="@layout/recipe_list_item"/>
 
 </LinearLayout>
