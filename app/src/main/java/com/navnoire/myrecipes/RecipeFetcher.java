@@ -22,14 +22,16 @@ import java.util.List;
 
 public class RecipeFetcher {
     private static final String TAG = "RecipeFetcher";
-    public static final String MAIN_URL = "https://gotovim-doma.ru";
+    private static final String MAIN_URL = "https://gotovim-doma.ru";
 
-    private Recipe mRecipe;
-    private List<Recipe> mRecipes;
+    private RecipeKt mRecipe;
+    private List<RecipeKt> mRecipes;
     private List<MenuItem> mMenuItems;
+    private Document mDocument;
+    private String mUrl;
 
     public RecipeFetcher() {
-        mRecipe = new Recipe();
+//        mRecipe = new RecipeKt();
         mRecipes = new ArrayList<>();
         mMenuItems = new ArrayList<>();
     }
@@ -58,25 +60,16 @@ public class RecipeFetcher {
 
     }
 
-    public Recipe fetchSingleRecipe(String url) {
-        mRecipe.setUrl(url);
+    public RecipeKt fetchSingleRecipe(RecipeKt recipe) {
+        mRecipe = recipe;
+        String url = recipe.getUrl();
 
         try {
             Document document = Jsoup.connect(url).userAgent("Mozilla").get();
-            Log.d(TAG, "fetchSingleRecipe: got Document from Url: " + document.location());
-
-            String title = document.title();
-            if (title.contains(" - Рецепт с фото на Готовим дома")) {
-                Log.i(TAG, "fetchSingleRecipe: find unappropriated string");
-                title = title.replace(" - Рецепт с фото на Готовим дома", "");
-            }
-            mRecipe.setTitle(title);
 
             Element recipeElement = document.select("div.recept-shadow").first();
             if (recipeElement != null) {
-                Log.d(TAG, "fetchSingleRecipe: received element " + recipeElement.className());
                 setTextFields(recipeElement);
-                getImageUrl(document.body());
             } else {
                 Log.d(TAG, "fetchSingleRecipe: failed to find recipe element");
             }
@@ -94,7 +87,6 @@ public class RecipeFetcher {
                         imageUrl = step.select("img.stepimg").get(0).absUrl("src");
                     }
                     String stepText = step.select("p").text();
-                    Log.d(TAG, "fetchSingleRecipe: fetched step " + imageUrl + " " + stepText);
                     ArrayList<String> oneStep = new ArrayList<>();
                     oneStep.add(stepText);
                     oneStep.add(imageUrl);
@@ -106,7 +98,6 @@ public class RecipeFetcher {
             }
 
 
-
         } catch (IOException ioe) {
             Log.d(TAG, "Connection failed jsoup");
         }
@@ -114,24 +105,53 @@ public class RecipeFetcher {
         return mRecipe;
     }
 
-    public List<MenuItem> fetchList(String url) {
+    public List<RecipeKt> fetchRecipeList(String url) {
+        Document document;
+        try {
+            document = Jsoup.connect(url).userAgent("Mozilla").get();
+        } catch (IOException ioe) {
+            Log.e(TAG, "fetchRecipeList: recipe list fetching failed", ioe);
+            return null;
+        }
+        if (document.select("div.recept-item").size() != 0) {
+            Elements recipes = document.select("div.recept-item-img");
+            Iterator iterator = recipes.iterator();
+            while (iterator.hasNext()) {
+                Element item = (Element) iterator.next();
+                RecipeKt recipe = new RecipeKt(item.select("a[href]").first().absUrl("href"),
+                        item.select("img[alt]").attr("alt"),
+                        null,
+                        null,
+                        item.select("img").first().absUrl("src"),
+                        null,
+                        null);
+
+//                recipe.setMainImageUrl(item.select("img").first().absUrl("src"));
+//                recipe.setTitle(item.select("img[alt]").attr("alt"));
+//                recipe.setUrl(item.select("a[href]").first().absUrl("href"));
+                mRecipes.add(recipe);
+            }
+        }
+        return mRecipes;
+    }
+
+    public List<MenuItem> fetchMenuList(String url) {
         try {
             Document document = Jsoup.connect(url).userAgent("Mozilla").get();
             if (url.equals(MAIN_URL)) {
-                Log.d(TAG, "fetchList: fetched main menu");
                 mMenuItems = getMenu(document, "table.menu-main", "th");
             } else {
 
                 if (document.select("ul.razdel-menu").size() != 0) {
-                    Log.d(TAG, "fetchList: fetched razdel menu ");
                     mMenuItems = getMenu(document, "ul.razdel-menu", "li");
                 } else {
-                    Log.d(TAG, "fetchList: no way forward ");
+                    Log.d(TAG, "fetchMenuList: no way forward");
+                    return null;
                 }
             }
 
         } catch (IOException ioe) {
-            Log.e(TAG, "fetchList: connection failed JSOUP", ioe);
+            Log.e(TAG, "fetchMenuList: connection failed JSOUP", ioe);
         }
         return mMenuItems;
     }
@@ -147,7 +167,7 @@ public class RecipeFetcher {
             String itemUrl = item.select("a[href]").first().absUrl("href");
             MenuItem newItem = new MenuItem(name, itemUrl);
             menuItems.add(newItem);
-            Log.d(TAG, "fetchList: fetched MenuItem " + name + " " + itemUrl);
+            Log.d(TAG, "fetchMenuList: fetched MenuItem " + name + " " + itemUrl);
         }
         return menuItems;
     }
@@ -172,21 +192,5 @@ public class RecipeFetcher {
 
         String finalIngredientsString = sb.toString();
         mRecipe.setIngredientsString(finalIngredientsString);
-    }
-
-    private void getImageUrl(Element root) {
-//        ArrayList<String> imagesUrls = new ArrayList<>();
-
-        String url = root.getElementsByClass("photo result-photo").get(0).absUrl("src");
-        Log.d(TAG, "getImageUrl: main image URL: " + url);
-        mRecipe.setMainImageUrl(url);
-
-//        List<Element> e = root.getElementsByClass("stepimg");
-//        for (Element step : e) {
-//            imagesUrls.add(step.absUrl("src"));
-//        }
-//        //mRecipe.setImageUrls(imagesUrls);
-//        Log.d(TAG, "getImageUrl: step images url: " + imagesUrls.toString());
-
     }
 }

@@ -25,19 +25,19 @@ import java.io.IOException;
 
 public class RecipeFragment extends Fragment {
     private static final String TAG = "RecipeFragment";
+    private static final String ARGS_RECIPE_URL = "argsREcipeURL";
 
-    private String mUrl = "https://gotovim-doma.ru/recipe/2434-tort-vozdushnyy-snikers";
-    private Recipe mRecipe = new Recipe();
+    private RecipeKt mRecipe;
     private TextView mTitleField;
     private TextView mSummaryField;
     private ImageView mMainImage;
     private TextView mIngredientsTextView;
     private Button mInstructionsButton;
 
-    public static RecipeFragment newInstance() {
+    public static RecipeFragment newInstance(String url) {
 
         Bundle args = new Bundle();
-
+        args.putString(ARGS_RECIPE_URL, url);
         RecipeFragment fragment = new RecipeFragment();
         fragment.setArguments(args);
         return fragment;
@@ -49,7 +49,11 @@ public class RecipeFragment extends Fragment {
 
         setRetainInstance(true);
 
-        new GetRecipeTask(mUrl).execute();
+        String mUrl = getArguments().getString(ARGS_RECIPE_URL);
+        mRecipe = RecipeLab.get(getActivity()).getRecipe(mUrl);
+
+
+        new GetRecipeTask(mRecipe).execute();
     }
 
     @Nullable
@@ -92,17 +96,17 @@ public class RecipeFragment extends Fragment {
     }
 
 
-    private class GetRecipeTask extends AsyncTask<Void, Void, Recipe> {
-        String mUrl;
+    private class GetRecipeTask extends AsyncTask<Void, Void, RecipeKt> {
+        RecipeKt mRecipe;
 
-        public GetRecipeTask(String url) {
-            mUrl = url;
+        public GetRecipeTask(RecipeKt recipe) {
+            mRecipe = recipe;
         }
 
         @Override
-        protected Recipe doInBackground(Void... voids) {
+        protected RecipeKt doInBackground(Void... voids) {
             RecipeFetcher rf = new RecipeFetcher();
-            Recipe recipe = rf.fetchSingleRecipe(mUrl);
+            RecipeKt recipe = rf.fetchSingleRecipe(mRecipe);
 
             try {
                 byte[] imageBytes = rf.getUrlBytes(recipe.getMainImageUrl());
@@ -118,7 +122,7 @@ public class RecipeFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(Recipe recipe) {
+        protected void onPostExecute(RecipeKt recipe) {
             mRecipe = recipe;
             UpdateUI();
         }

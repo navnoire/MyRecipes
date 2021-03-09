@@ -41,6 +41,8 @@ public class MenuListFragment extends Fragment {
 
     public interface Callbacks {
         void onItemClicked(MenuItem item);
+
+        void onEndOfMenuReached (String url);
     }
 
     @Override
@@ -76,7 +78,7 @@ public class MenuListFragment extends Fragment {
             mMenuList.setAdapter(new MenuAdapter(items));
             Log.d(TAG, "setupAdapter: new adapter created");
         } else {
-            ((MenuAdapter)mMenuList.getAdapter()).updateItems(items);
+            ((MenuAdapter) mMenuList.getAdapter()).updateItems(items);
         }
     }
 
@@ -87,7 +89,7 @@ public class MenuListFragment extends Fragment {
             mMenuItemList = menuItemList;
         }
 
-        public void updateItems (List<MenuItem> items) {
+        public void updateItems(List<MenuItem> items) {
             mMenuItemList = items;
             notifyDataSetChanged();
             Log.d(TAG, "updateItems: items change notified");
@@ -113,17 +115,18 @@ public class MenuListFragment extends Fragment {
             if (convertView == null) {
                 convertView = LayoutInflater.from(getActivity()).inflate(
                         android.R.layout.simple_list_item_1, parent, false);
-
-                ((TextView) convertView.findViewById(android.R.id.text1))
-                        .setText(mMenuItemList.get(position).getTitle());
-
-                convertView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        mCallbacks.onItemClicked(mMenuItemList.get(position));
-                    }
-                });
             }
+
+            ((TextView) convertView.findViewById(android.R.id.text1))
+                    .setText(mMenuItemList.get(position).getTitle());
+
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mCallbacks.onItemClicked(mMenuItemList.get(position));
+                }
+            });
+
             return convertView;
         }
 
@@ -141,14 +144,18 @@ public class MenuListFragment extends Fragment {
         @Override
         protected List<MenuItem> doInBackground(Void... voids) {
             Log.d(TAG, "doInBackground: in");
-            return new RecipeFetcher().fetchList(menuUrl);
+            return new RecipeFetcher().fetchMenuList(menuUrl);
         }
 
         @Override
         protected void onPostExecute(List<MenuItem> menuItems) {
             super.onPostExecute(menuItems);
-            mMenuItems = menuItems;
-            setupAdapter(mMenuItems);
+            if (menuItems != null) {
+                mMenuItems.addAll(menuItems);
+                setupAdapter(mMenuItems);
+            } else {
+                mCallbacks.onEndOfMenuReached(menuUrl);
+            }
 
 
         }

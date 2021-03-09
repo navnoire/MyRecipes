@@ -3,7 +3,6 @@ package com.navnoire.myrecipes;
 import android.graphics.drawable.Drawable;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by navnoire on 19/10/17 in MyRecipes project
@@ -16,7 +15,7 @@ public class Recipe {
     private String mSummary;
     private String mIngredientsString;
     private ArrayList<ArrayList<String>> mInstructions = new ArrayList<>();
-    private List<Drawable> mStepImages = new ArrayList<>();
+//    private List<Drawable> mStepImages = new ArrayList<>();
 
     private String mMainImageUrl;
     private Drawable mainImage;
@@ -45,13 +44,13 @@ public class Recipe {
         mMainImageUrl = mainImageUrl;
     }
 
-    public List<Drawable> getStepImages() {
-        return mStepImages;
-    }
-
-    public void setStepImages(List<Drawable> stepImages) {
-        mStepImages = stepImages;
-    }
+//    public List<Drawable> getStepImages() {
+//        return mStepImages;
+//    }
+//
+//    public void setStepImages(List<Drawable> stepImages) {
+//        mStepImages = stepImages;
+//    }
 
     public Drawable getMainImage() {
         return mainImage;
